@@ -4,11 +4,17 @@
     <div v-else class="card">
       <div class="card__title">Все кроссовки</div>
       <div class="card__search">
-        <input type="text" v-model="filterWorld" @keyup="filterShues" />
-        <span style="color: red">{{ shoes[0] }}</span>
+        <input type="text" v-model="searchByInput" />
+      </div>
+      <div class="card-tabs">
+        <!-- {{ queryBrands }} -->
+        <button v-for="brand in queryBrands" @click="chooseBrand(brand)" class="card-tabs__item">
+          {{ brand }}
+        </button>
       </div>
       <div class="row">
-        <div v-for="shoe in shoes[0]" :key="shoe.id" class="col-3">
+        <div v-for="shoe in queryItems" :key="shoe.id" class="col-3">
+          <h1>{{ shoe.id }}</h1>
           <div class="card-item">
             <div class="card-item-favourite">
               <img src="/heart.svg" alt="heart" class="card-item-favourite__img" />
@@ -31,42 +37,48 @@
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
-const shoes = ref(null)
+import { ref, onMounted, computed, watch } from 'vue'
+const shoes = ref([])
 const error = ref(null)
-let filterWorld = ref('')
-let filtredArray = ref(null)
-async function doFetch() {
+let searchByInput = ref('')
+const queryBrands = ref(['all', 'Nike', 'Puma', 'Future', 'Black', 'Boomb', 'Adidas', 'Converse'])
+const sortByBrand = ref('')
+
+onMounted(async () => {
   try {
     const res = await fetch('https://4fa75954d55451f2.mokky.dev/shoes')
     shoes.value = await res.json()
   } catch (e) {
     error.value = 'Упс! Кросовки куда-то убежали'
   }
-}
-doFetch()
+})
 
-function filterShues() {
-  console.log(shoes.value[0])
-  filtredArray = shoes.value[0].filter((filterWorld) => {
-    for (const item of Object.entries(shoes.value[0])) {
-      return item[1].title.indexOf(filterWorld.value) > 0
-    }
-  })
-  console.log(filtredArray)
-  //   for (const item of Object.entries(shoes.value[0])) {
-  //     console.log(shoes.value[0])
+watch(sortByBrand, async () => {
+  try {
+    const res = await fetch('https://4fa75954d55451f2.mokky.dev/shoes' + sortByBrand.value)
+    shoes.value = await res.json()
+  } catch (e) {
+    error.value = 'Упс! Кросовки куда-то убежали'
+  }
+})
 
-  //     filtredArray = shoes.value[0]
-  //     // console.log(filterWorld.value)
-  //     // console.log(item[1].title.indexOf(filterWorld.value))
-  //     if (item[1].title.indexOf(filterWorld.value) > 0) {
-  //       //   console.log(true + ' ---- ' + item[1].title)
-  //     } else {
-  //       //   console.log(false)
-  //     }
-  //   }
+const queryItems = computed(() => {
+  return shoes.value.filter((e) => e.title.toLowerCase().indexOf(searchByInput.value) !== -1)
+})
+
+function chooseBrand(brand) {
+  if (brand === 'all') {
+    sortByBrand.value = ''
+  } else {
+    sortByBrand.value = `?brand=${brand}`
+  }
 }
+// const queryBrands = computed(() => {
+//   const brandArr = shoes.value.map((item) => {
+//     return item.brand
+//   })
+//   return [...new Set(brandArr)]
+// })
 </script>
 
 <style scoped lang="scss">
@@ -144,6 +156,11 @@ function filterShues() {
   }
 }
 
+.card-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 .card-error {
   color: #ca3232;
 }

@@ -2,9 +2,22 @@
   <div class="header">
     <div class="container">
       <img src="/logo.png" alt="logo" />
+      <input type="text" placeholder="email" v-model="email" />
+      <input type="text" placeholder="password" v-model="password" />
+      <button @click="signUp">Sign Up</button>
     </div>
   </div>
 </template>
+<script setup>
+import { ref } from 'vue'
+
+const email = ref()
+const password = ref()
+
+const signUp = async () => {
+  console.log('test')
+}
+</script>
 
 <style scoped>
 .header {
